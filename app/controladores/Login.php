@@ -1,16 +1,9 @@
-<?php  
-/**
- * 
- */
+<?php
+
 class Login extends Controlador
 {
-	private $modelo = "";
-	private $sesion;
-	
-	function __construct()
-	{
-		// code...
-	}
+    public function caratula()
+    {
+        require __DIR__ . "/../vistas/loginCaratulaVista.php";
+    }
 }
-
-?>

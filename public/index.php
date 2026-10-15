@@ -1,8 +1,3 @@
 <?php
-require_once("../app/inicio.php");
-
-$db = new mysqldb();
-
-echo "<h1>Bienvenido al sistema de Biblioteca</h1>";
-//echo "<p>Conexión a la base de datos: <strong>¡Conectado correctamente!</strong></p>";
+require_once __DIR__ . "/../app/inicio.php";
 ?>

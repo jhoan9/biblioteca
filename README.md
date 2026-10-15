@@ -26,4 +26,8 @@
 
 6. Pulsa **Importar** o **Continuar** para ejecutar el archivo.
 
-Con Apache y MySQL encendidos, abre el proyecto en el navegador desde [http://localhost/biblioteca/public/](http://localhost/biblioteca/public/).
+Con Apache y MySQL encendidos, abre el proyecto desde [http://localhost/biblioteca/](http://localhost/biblioteca/). El archivo `.htaccess` dirige las solicitudes a `public/`; desde allí, las rutas se despachan en el formato `controlador/metodo/parametro`.
+
+Para consultar el catálogo, visita [http://localhost/biblioteca/libros/index](http://localhost/biblioteca/libros/index) o selecciona **Ver catálogo de libros** en la página inicial.
+
+Desde el catálogo puedes registrar libros indicando nombre, título, autor e ISBN. El ISBN debe ser único.

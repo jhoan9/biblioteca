@@ -1,15 +1,11 @@
-<?php  
-/**
- * 
- */
+<?php
+
 class Controlador
 {
-	
-	function __construct()
-	{
-		// code...
-	}
+    protected $db;
+
+    public function __construct(MySQLdb $db)
+    {
+        $this->db = $db;
+    }
 }
-
-
-?>
