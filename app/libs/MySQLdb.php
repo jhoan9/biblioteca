@@ -10,7 +10,7 @@ class MySQLdb
 
     public function __construct()
     {
-        $dsn = "mysql:host={$this->host};dbname={$this->db};charset=utf8mb4";
+        $dsn = "mysql:host=127.0.0.1;port=3307;dbname={$this->db};charset=utf8mb4";
         $this->conn = new PDO($dsn, $this->usuario, $this->clave, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
