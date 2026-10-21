@@ -32,8 +32,6 @@ Sistema web de gestión de una biblioteca desarrollado en PHP y MySQL.
 
 ### Configuración de MySQL
 
-Se ajustó la conexión en `app/libs/MySQLdb.php` para especificar el puerto `3307`, necesario para la configuración actual de XAMPP.
-
 **Prueba realizada:** se verificó que la conexión con la base de datos `biblioteca` funciona correctamente. También se añadieron dos libros a la biblioteca.
 
 Con Apache y MySQL encendidos, abre:
