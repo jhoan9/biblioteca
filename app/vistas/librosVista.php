@@ -1,198 +1,143 @@
 <?php
-$baseUrl = rtrim(dirname(dirname($_SERVER["SCRIPT_NAME"])), "/\\");
+require_once __DIR__ . "/layout.php";
+
+$enlaceFiltro = function ($valor) use ($busqueda) {
+    $parametros = [];
+    if ($busqueda !== "") {
+        $parametros["q"] = $busqueda;
+    }
+    if ($valor !== "todos") {
+        $parametros["estado"] = $valor;
+    }
+
+    return url("/libros/index" . ($parametros ? "?" . http_build_query($parametros) : ""));
+};
+
+$filtros = [
+    "todos" => "Todos",
+    "disponibles" => "Disponibles",
+    "prestados" => "En préstamo",
+];
+
+renderHeader("Catálogo", "libros");
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo de libros | Biblioteca</title>
-    <style>
-        body {
-            background: #f4f6f8;
-            color: #202b36;
-            font-family: Arial, sans-serif;
-            margin: 0;
-        }
-        main {
-            margin: 40px auto;
-            max-width: 1100px;
-            padding: 0 20px;
-        }
-        .encabezado {
-            align-items: center;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 24px;
-        }
-        .formulario, .tabla-contenedor {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
-            margin-bottom: 24px;
-            padding: 22px;
-        }
-        .campos {
-            display: grid;
-            gap: 16px;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 6px;
-        }
-        input {
-            border: 1px solid #b8c4ce;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font: inherit;
-            padding: 10px;
-            width: 100%;
-        }
-        button {
-            background: #145da0;
-            border: 0;
-            border-radius: 4px;
-            color: #fff;
-            cursor: pointer;
-            font: inherit;
-            margin-top: 16px;
-            padding: 11px 18px;
-        }
-        .mensaje {
-            border-radius: 4px;
-            margin-bottom: 18px;
-            padding: 12px 16px;
-        }
-        .exito {
-            background: #e4f4e9;
-            color: #176b3a;
-        }
-        .error {
-            background: #fff0ef;
-            color: #a33b35;
-        }
-        .error-campo {
-            color: #a33b35;
-            display: block;
-            font-size: .9rem;
-            margin-top: 5px;
-        }
-        a {
-            color: #145da0;
-        }
-        .tabla-contenedor {
-            overflow-x: auto;
-        }
-        table {
-            border-collapse: collapse;
-            min-width: 700px;
-            width: 100%;
-        }
-        th, td {
-            border-bottom: 1px solid #e3e8ed;
-            padding: 13px 16px;
-            text-align: left;
-        }
-        th {
-            background: #edf3f8;
-        }
-        tbody tr:last-child td {
-            border-bottom: 0;
-        }
-        .disponible {
-            color: #176b3a;
-            font-weight: bold;
-        }
-        .no-disponible {
-            color: #a33b35;
-            font-weight: bold;
-        }
-        .vacio {
-            padding: 24px;
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
-    <main>
-        <div class="encabezado">
-            <h1>Catálogo de libros</h1>
-            <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, "UTF-8") ?>/">Volver al inicio</a>
-        </div>
 
-        <?php if ($guardado): ?>
-            <p class="mensaje exito" role="status">El libro se registró correctamente.</p>
-        <?php endif; ?>
-
-        <section class="formulario" aria-labelledby="formulario-titulo">
-            <h2 id="formulario-titulo">Registrar un libro</h2>
-            <?php if ($errores && !isset($errores["isbn"])): ?>
-                <p class="mensaje error" role="alert">Revisa los campos indicados y vuelve a intentarlo.</p>
-            <?php endif; ?>
-            <form action="<?= htmlspecialchars($baseUrl, ENT_QUOTES, "UTF-8") ?>/libros/crear" method="post">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, "UTF-8") ?>">
-                <div class="campos">
-                    <?php foreach (["nombre" => "Nombre", "titulo" => "Título", "autor" => "Autor", "isbn" => "ISBN"] as $campo => $etiqueta): ?>
-                        <div>
-                            <label for="<?= $campo ?>"><?= $etiqueta ?></label>
-                            <input
-                                id="<?= $campo ?>"
-                                name="<?= $campo ?>"
-                                type="text"
-                                maxlength="<?= $campo === "isbn" ? 100 : 250 ?>"
-                                value="<?= htmlspecialchars($datos[$campo] ?? "", ENT_QUOTES, "UTF-8") ?>"
-                                required
-                                aria-invalid="<?= isset($errores[$campo]) ? "true" : "false" ?>"
-                                <?= isset($errores[$campo]) ? 'aria-describedby="error-' . $campo . '"' : "" ?>
-                            >
-                            <?php if (isset($errores[$campo])): ?>
-                                <span id="error-<?= $campo ?>" class="error-campo"><?= htmlspecialchars($errores[$campo], ENT_QUOTES, "UTF-8") ?></span>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-                <button type="submit">Guardar libro</button>
-            </form>
-        </section>
-
-        <div class="tabla-contenedor">
-            <?php if (count($libros) > 0): ?>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Título</th>
-                            <th>Autor</th>
-                            <th>ISBN</th>
-                            <th>Disponibilidad</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($libros as $libro): ?>
-                            <tr>
-                                <td><?= htmlspecialchars((string) $libro["id_libro"], ENT_QUOTES, "UTF-8") ?></td>
-                                <td><?= htmlspecialchars($libro["nombre"], ENT_QUOTES, "UTF-8") ?></td>
-                                <td><?= htmlspecialchars($libro["titulo"], ENT_QUOTES, "UTF-8") ?></td>
-                                <td><?= htmlspecialchars($libro["autor"], ENT_QUOTES, "UTF-8") ?></td>
-                                <td><?= htmlspecialchars($libro["isbn"], ENT_QUOTES, "UTF-8") ?></td>
-                                <td>
-                                    <?php if ((int) $libro["disponible"] === 1): ?>
-                                        <span class="disponible">Disponible</span>
-                                    <?php else: ?>
-                                        <span class="no-disponible">Prestado</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+<div class="pagina-cabecera">
+    <div>
+        <h1>Catálogo</h1>
+        <p>
+            <?php if ($busqueda !== ""): ?>
+                <?= count($libros) ?> resultado<?= count($libros) === 1 ? "" : "s" ?> para "<?= e($busqueda) ?>"
             <?php else: ?>
-                <p class="vacio">Todavía no hay libros registrados en el catálogo.</p>
+                <?= (int) $total ?> libro<?= $total === 1 ? "" : "s" ?> en la colección
+            <?php endif; ?>
+        </p>
+    </div>
+    <div class="acciones-cabecera">
+        <a class="boton boton-primario" href="<?= e(url("/libros/crear")) ?>">
+            <?= icono("mas") ?> Registrar libro
+        </a>
+    </div>
+</div>
+
+<div class="barra-herramientas">
+    <form class="buscador" method="get" action="<?= e(url("/libros/index")) ?>" role="search">
+        <?= icono("buscar") ?>
+        <input type="search" name="q" value="<?= e($busqueda) ?>"
+               placeholder="Buscar por título, autor o ISBN…" aria-label="Buscar libros">
+        <?php if ($estado !== "todos"): ?>
+            <input type="hidden" name="estado" value="<?= e($estado) ?>">
+        <?php endif; ?>
+    </form>
+
+    <nav class="filtros" aria-label="Filtrar por disponibilidad">
+        <?php foreach ($filtros as $valor => $texto): ?>
+            <a class="filtro <?= $estado === $valor ? "activo" : "" ?>"
+               href="<?= e($enlaceFiltro($valor)) ?>"
+               <?= $estado === $valor ? 'aria-current="page"' : "" ?>>
+                <?= e($texto) ?>
+            </a>
+        <?php endforeach; ?>
+    </nav>
+</div>
+
+<?php if ($libros): ?>
+    <div class="libros-grid">
+        <?php foreach ($libros as $libro): ?>
+            <?php
+            $disponible = (int) $libro["disponible"] === 1;
+            $tono = (((int) $libro["id_libro"] * 47) % 360 + 360) % 360;
+            ?>
+            <article class="libro-card">
+                <div class="libro-portada" style="--tono: <?= $tono ?>">
+                    <span><?= e(iniciales($libro["titulo"])) ?></span>
+                    <span class="insignia libro-estado <?= $disponible ? "insignia-verde" : "insignia-ambar" ?>">
+                        <?= $disponible ? "Disponible" : "Prestado" ?>
+                    </span>
+                </div>
+                <div class="libro-cuerpo">
+                    <h2 class="libro-titulo"><?= e($libro["titulo"]) ?></h2>
+                    <p class="libro-autor"><?= e($libro["autor"]) ?></p>
+
+                    <dl class="libro-meta">
+                        <div>
+                            <dt>ISBN</dt>
+                            <dd title="<?= e($libro["isbn"]) ?>"><?= e($libro["isbn"]) ?></dd>
+                        </div>
+                        <div>
+                            <dt>Ejemplar</dt>
+                            <dd title="<?= e($libro["nombre"]) ?>"><?= e($libro["nombre"]) ?></dd>
+                        </div>
+                    </dl>
+
+                    <div class="libro-acciones">
+                        <?php if ($disponible): ?>
+                            <a class="boton boton-primario"
+                               href="<?= e(url("/prestamos/crear?libro=" . (int) $libro["id_libro"])) ?>">
+                                <?= icono("prestamo") ?> Prestar
+                            </a>
+                        <?php else: ?>
+                            <a class="boton boton-secundario" href="<?= e(url("/prestamos/index?filtro=activos")) ?>">
+                                <?= icono("reloj") ?> Ver préstamo
+                            </a>
+                        <?php endif; ?>
+
+                        <a class="boton boton-icono" href="<?= e(url("/libros/editar/" . (int) $libro["id_libro"])) ?>"
+                           title="Editar libro" aria-label="Editar <?= e($libro["titulo"]) ?>">
+                            <?= icono("editar") ?>
+                        </a>
+
+                        <form class="form-inline" method="post" action="<?= e(url("/libros/eliminar")) ?>"
+                              data-confirm="¿Eliminar «<?= e($libro["titulo"]) ?>» del catálogo?">
+                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken ?? "") ?>">
+                            <input type="hidden" name="id" value="<?= (int) $libro["id_libro"] ?>">
+                            <button type="submit" class="boton boton-icono peligro"
+                                    title="Eliminar libro" aria-label="Eliminar <?= e($libro["titulo"]) ?>">
+                                <?= icono("eliminar") ?>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+        <?php endforeach; ?>
+    </div>
+<?php else: ?>
+    <div class="panel">
+        <div class="vacio">
+            <span class="vacio-icono"><?= icono("libro") ?></span>
+            <?php if ($busqueda !== "" || $estado !== "todos"): ?>
+                <h3>Sin resultados</h3>
+                <p>No encontramos libros que coincidan con tu búsqueda o filtro.</p>
+                <a class="boton boton-secundario" href="<?= e(url("/libros/index")) ?>">Limpiar filtros</a>
+            <?php else: ?>
+                <h3>Tu catálogo está vacío</h3>
+                <p>Registra tu primer libro para empezar a gestionar la colección.</p>
+                <a class="boton boton-primario" href="<?= e(url("/libros/crear")) ?>">
+                    <?= icono("mas") ?> Registrar libro
+                </a>
             <?php endif; ?>
         </div>
-    </main>
-</body>
-</html>
+    </div>
+<?php endif; ?>
+
+<?php renderFooter(); ?>

@@ -2,8 +2,8 @@
 
 class Control
 {
-    private $controlador = "Login";
-    private $metodo = "caratula";
+    private $controlador = "Panel";
+    private $metodo = "index";
     private $parametros = [];
     private $db;
 
@@ -23,7 +23,7 @@ class Control
 
         $segmentos = explode("/", $ruta);
         foreach ($segmentos as $segmento) {
-            if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_]*$/', $segmento)) {
+            if ($segmento === "" || !preg_match('/^[a-zA-Z0-9_-]+$/', $segmento)) {
                 $this->noEncontrado();
             }
         }
